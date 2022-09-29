@@ -5,8 +5,25 @@ module.exports={
         Channel.find().then((channels)=>res.json(channels))
     },
     //gets messages sent within a given time of the request (default ten minutes?)
-    getMessagesSince(req,res){
-
+    getXMessages(req,res){
+        let numToFetch = parseInt(req.params.x);
+        Channel.findById(req.params.channelId,function(err,channel){
+            if(err){
+                res.status(500).json(err);
+                return;
+            }
+            if(!channel){
+                res.status(404).json({ message: 'No channel with that ID' });
+            }else{
+                if(channel.messages.length < numToFetch){
+                    res.json(channel.messages);
+                }else{
+                    res.json(channel.messages.slice(-1*numToFetch));
+                }
+                
+            }
+            
+        })
     },
     getOneChannel(req,res){
         Channel.findById(req.params.channelId,function(err,channel){
