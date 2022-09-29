@@ -1,8 +1,9 @@
 const router = require('express').Router();
 const {
-    getChannels
+    getChannels,
+    createChannel,
 } = require('../../controllers/channelController');
 
-router.route('/').get(getChannels);
+router.route('/').get(getChannels).post(createChannel);
 
 module.exports = router;
