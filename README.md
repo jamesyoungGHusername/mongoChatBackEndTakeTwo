@@ -1,5 +1,13 @@
  
  # CHAT BACKEND PROOF OF CONCEPT WITH REACT FRONT END
+
+# TO DO
+
+    Format messages on front end to detect links and wrap them in anchors.
+    (Bonus: check links to see if there's a preview avaialbe for the link. Display image.)
+
+
+
  # Description
 
    
@@ -21,9 +29,6 @@
 
   [Questions](#questions)
 
-  
-
-  # Installation
 
 
 
