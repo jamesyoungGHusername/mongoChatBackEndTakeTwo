@@ -1,4 +1,5 @@
 const express = require('express');
+
 const db = require('./config/connection');
 const routes = require('./routes');
 
@@ -10,6 +11,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(routes);
 
+const io = require('socket.io')();
+require('./socket')(io)            
+
 
 db.once('open', () => {
     app.listen(PORT, () => {
@@ -17,3 +21,5 @@ db.once('open', () => {
     });
   });
 
+
+module.exports = { app, io };  

@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+//import io from "socket.io-client"; 
+
 // import App from './App';
 // import reportWebVitals from './reportWebVitals';
 
@@ -32,9 +34,8 @@ class MessageEditor extends React.Component{
       };
       this.handleChange = this.handleChange.bind(this);
       this.handleSubmit = this.handleSubmit.bind(this);
-      this.callBackendAPI = this.callBackendAPI.bind(this);
+      this.send = this.send.bind(this);
       console.log(props.refresh);
-      
     }
     handleChange(event) {
       console.log("changed")
@@ -43,12 +44,17 @@ class MessageEditor extends React.Component{
     handleSubmit(event){
       event.preventDefault();
       console.log(this.state.value);
+      if(this.state.value != ""){
+        this.send(this.state.value);
+      }
       this.setState({value:''});
-      this.callBackendAPI();
     }
-    async callBackendAPI(){
-      const response = await fetch('/api/channels',
+    async send(message){
+      const response = await fetch('/api/channels/633506bff3062b9dde088655/messages',
         {
+          method:"POST",
+          body:JSON.stringify({messageText:message,
+          username:"James Young"}),
           headers : { 
           'Content-Type': 'application/json',
           'Accept': 'application/json'
