@@ -13,7 +13,6 @@ class Game extends React.Component {
         <div className="game-board">
           {/* <Board /> */}
           <ChatDisplay />
-          <ChatDisplay />
           
         </div>
         <div className="game-info">
@@ -48,6 +47,7 @@ class MessageEditor extends React.Component{
         this.send(this.state.value);
       }
       this.setState({value:''});
+      this.props.refresh();
     }
     async send(message){
       const response = await fetch('/api/channels/633506bff3062b9dde088655/messages',
@@ -81,24 +81,41 @@ class ChatDisplay extends React.Component{
       super(props);
       this.state = {value: 'test',messages:[]};
       this.messageList = [];
-      
+      this.refeshChat = this.refeshChat.bind(this);
   }
   
-  ChatListItems(messages){
+  chatListItems(messages){
       console.log(messages);
-      return messages.map((message) => <li key={message}>{message}</li>)
+      return messages.map((message) => <li key={message.text}>{message.username}: {message.text}</li>)
   }
-  RefeshChat(){
+  async refeshChat(){
     console.log("refreshing chat");
+    const response = await fetch('/api/channels/633506bff3062b9dde088655/messages',
+        {
+          method:"GET",
+          headers : { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+          }
+        }
+      );
+    const body = await response.json();
+    console.log(body);
+    let messageList = [];
+    this.setState({messages:[]});
+    for(const message of body){
+      messageList.push({text:message.messageText,username:message.username});
+    }
+    this.setState({messages:messageList});
   }
 
   render(){
       return(
           <div>
               <ul>
-                  {this.ChatListItems(this.state.messages)}
+                  {this.chatListItems(this.state.messages)}
               </ul>
-              <MessageEditor refresh={this.RefreshChat}/>
+              <MessageEditor refresh={this.refeshChat}/>
           </div>
           
       );
