@@ -27,4 +27,34 @@ module.exports={
           })
         .catch((err)=> res.status(500).json(err));
     },
+    addMessage(req,res){
+        Channel.findOneAndUpdate(
+            {_id: req.params.channelId},
+            { $addToSet: { messages: req.body } },
+            { runValidators: true, new: true }
+        ).then((channel)=>
+            !channel
+            ? res.status(404).json({ message: 'No thought with this id!' })
+            : res.json(channel)
+        ).catch((err) => res.status(500).json(err));
+    },
+    getRecentMessages(req,res){
+        Channel.findById(req.params.channelId,function(err,channel){
+            if(err){
+                res.status(500).json(err);
+                return;
+            }
+            if(!channel){
+                res.status(404).json({ message: 'No channel with that ID' });
+            }else{
+                if(channel.messages.length < 5){
+                    res.json(channel.messages);
+                }else{
+                    res.json(channel.messages.slice(-5));
+                }
+                
+            }
+            
+        })
+    }
 }
