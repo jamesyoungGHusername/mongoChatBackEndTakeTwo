@@ -64,10 +64,10 @@ module.exports={
             if(!channel){
                 res.status(404).json({ message: 'No channel with that ID' });
             }else{
-                if(channel.messages.length < 5){
+                if(channel.messages.length < 50){
                     res.json(channel.messages);
                 }else{
-                    res.json(channel.messages.slice(-5));
+                    res.json(channel.messages.slice(-50));
                 }
                 
             }

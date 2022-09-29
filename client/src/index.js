@@ -86,7 +86,7 @@ class ChatDisplay extends React.Component{
   
   chatListItems(messages){
       console.log(messages);
-      return messages.map((message) => <li key={message.text}>{message.username}: {message.text}</li>)
+      return messages.map((message) => <li key={message._id}>{message.username}: {message.text}</li>)
   }
   async refeshChat(){
     console.log("refreshing chat");
@@ -104,7 +104,7 @@ class ChatDisplay extends React.Component{
     let messageList = [];
     this.setState({messages:[]});
     for(const message of body){
-      messageList.push({text:message.messageText,username:message.username});
+      messageList.push({_id:message._id,text:message.messageText,username:message.username});
     }
     this.setState({messages:messageList});
   }
@@ -112,17 +112,17 @@ class ChatDisplay extends React.Component{
   render(){
       return(
           <div>
+            <div className='scrollable-div'>
               <ul>
                   {this.chatListItems(this.state.messages)}
               </ul>
-              <MessageEditor refresh={this.refeshChat}/>
+            </div>
+            <MessageEditor refresh={this.refeshChat}/>
           </div>
           
       );
   }
 }
-
-
 
 // ========================================
 
