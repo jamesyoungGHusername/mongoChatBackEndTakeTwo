@@ -1,17 +1,33 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import { w3cwebsocket as W3CWebSocket } from "websocket";
+
+const client = new W3CWebSocket('ws://127.0.0.1:8000');
 //import io from "socket.io-client"; 
 
 // import App from './App';
 // import reportWebVitals from './reportWebVitals';
 
-class Game extends React.Component {
+class ChannelDisplay extends React.Component{
+  componentDidMount() {
+
+  }
+  render(){
+    return(<p>Channel Name</p>);
+  }
+}
+
+class ChatWindow extends React.Component {
+  componentDidMount() {
+
+  }
   render() {
     return (
       <div className="game">
         <div className="game-board">
           {/* <Board /> */}
+          
           <ChatDisplay />
           
         </div>
@@ -46,8 +62,9 @@ class MessageEditor extends React.Component{
       if(this.state.value != ""){
         this.send(this.state.value);
       }
+      client.send(JSON.stringify({message:this.state.value,type:"userEvent",username:"james young"}));
       this.setState({value:''});
-      this.props.refresh();
+      //this.props.refresh();
     }
     async send(message){
       const response = await fetch('/api/channels/633506bff3062b9dde088655/messages',
@@ -83,7 +100,17 @@ class ChatDisplay extends React.Component{
       this.messageList = [];
       this.refeshChat = this.refeshChat.bind(this);
   }
-  
+  componentDidMount() {
+    client.onopen = () => {
+      console.log('WebSocket Client Connected');
+      this.refeshChat();
+    };
+    client.onmessage = (message) => {
+      console.log(message.data);
+      this.refeshChat();
+    
+    };
+  }
   chatListItems(messages){
       console.log(messages);
       return messages.map((message) => <li key={message._id}>{message.username}: {message.text}</li>)
@@ -127,4 +154,4 @@ class ChatDisplay extends React.Component{
 // ========================================
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<Game />);
+root.render(<div><ChannelDisplay /><ChatWindow /></div>);
