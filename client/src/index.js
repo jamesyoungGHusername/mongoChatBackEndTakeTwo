@@ -47,7 +47,7 @@ class MessageEditor extends React.Component{
       this.callBackendAPI();
     }
     async callBackendAPI(){
-      const response = await fetch('/express_backend',
+      const response = await fetch('/api/channels',
         {
           headers : { 
           'Content-Type': 'application/json',
