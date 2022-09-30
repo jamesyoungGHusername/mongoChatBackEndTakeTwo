@@ -97,15 +97,18 @@ class ChatDisplay extends React.Component{
     
     };
   }
+  parseLinkInText(text){
+    if(validLink.test(text)){
+      return <a href={text}>{text}</a>;
+    }else{
+      return <span>{text}</span>;
+    }
+  }
   chatListItems(messages){
       console.log(messages);
       
       return messages.map((message) => {
-        if(validLink.test(message.text)){
-          return <li key={message._id}>{message.username}: <a href={message.text}>{message.text}</a></li>
-        }else{
-          return <li key={message._id}>{message.username}: {message.text}</li>
-        }
+          return <li key={message._id}>{message.username}: {this.parseLinkInText(message.text)}</li>
         }
         )
   }
