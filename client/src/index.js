@@ -135,6 +135,7 @@ class ChatDisplay extends React.Component{
           <div>
             <h1>{this.props.name}</h1>
             <div className='scrollable-div'>
+              <a className='loadMore'>Load Older Messages</a>
               
               <ul>
                   {this.chatListItems(this.state.messages)}
