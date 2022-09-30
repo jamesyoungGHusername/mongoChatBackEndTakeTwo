@@ -3,43 +3,141 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 
-const client = new W3CWebSocket('ws://127.0.0.1:8000');
+//const client = new W3CWebSocket('ws://127.0.0.1:8000');
+let currentChannelId = '';
 //import io from "socket.io-client"; 
 
 // import App from './App';
 // import reportWebVitals from './reportWebVitals';
 
 class ChannelDisplay extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      channelList:[],
+      openChannelIds:[],
+    };
+  }
   componentDidMount() {
-
+    this.getChannelList();
+  }
+  async getChannelList(){
+    const response = await fetch('/api/channels/',
+        {
+          method:"GET",
+          headers : { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+          }
+        }
+      );
+      const body = await response.json();
+      console.log(body);
+      this.setState({channelList:body});
+  }
+  channelOptionItems(list){
+    return list.map((item) => <a onClick={() => this.openChannel(item._id,item.channelName)} key={item._id}>{item.channelName}</a>)
+  }
+  openChannel(id,name){
+    console.log(id);
+    let l = this.state.openChannelIds;
+    let alreadyOpen=false;
+    for(const item of l){
+      if(id == item){
+        alreadyOpen=true;
+      }
+    }
+    if(!alreadyOpen){
+      l.push({id,name});
+      this.setState({openChannelIds:l})
+      currentChannelId = id;
+      this.loadedChannels(this.state.openChannelIds);
+    }
+    
+    
+  }
+  loadedChannels(list){
+      console.log("list "+list);
+      return list.map((id) => <ChatDisplay chatId={id.id} key={id.id} name={id.name}/>)
   }
   render(){
-    return(<p>Channel Name</p>);
-  }
-}
-
-class ChatWindow extends React.Component {
-  componentDidMount() {
-
-  }
-  render() {
-    return (
-      <div className="game">
-        <div className="game-board">
-          {/* <Board /> */}
-          
-          <ChatDisplay />
+    return(
+      <div>
+        <div className="dropdown">
+        <button className="dropbtn">Open Channel</button>
+        <div className="dropdown-content">
+          {this.channelOptionItems(this.state.channelList)}
           
         </div>
-        <div className="game-info">
-          <div>{/* status */}</div>
-          <ol>{/* TODO */}</ol>
         </div>
+        {this.loadedChannels(this.state.openChannelIds)}
       </div>
-    );
+      
+      );
   }
 }
 
+
+class ChatDisplay extends React.Component{
+  constructor(props){
+      super(props);
+      this.state = {value: 'test',messages:[]};
+      this.messageList = [];
+      this.refeshChat = this.refeshChat.bind(this);
+      this.client = new W3CWebSocket('ws://127.0.0.1:8000');
+  }
+  componentDidMount() {
+    this.client.onopen = () => {
+      console.log('WebSocket Client Connected');
+      this.refeshChat();
+    };
+    this.client.onmessage = (message) => {
+      console.log(message.data);
+      this.refeshChat();
+    
+    };
+  }
+  chatListItems(messages){
+      console.log(messages);
+      return messages.map((message) => <li key={message._id}>{message.username}: {message.text}</li>)
+  }
+  async refeshChat(){
+    console.log("refreshing chat");
+    const response = await fetch('/api/channels/'+this.props.chatId+'/messages',
+        {
+          method:"GET",
+          headers : { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+          }
+        }
+      );
+    const body = await response.json();
+    console.log(body);
+    let messageList = [];
+    this.setState({messages:[]});
+    for(const message of body){
+      messageList.push({_id:message._id,text:message.messageText,username:message.username});
+    }
+    this.setState({messages:messageList});
+  }
+
+  render(){
+      return(
+          <div>
+            <h1>{this.props.name}</h1>
+            <div className='scrollable-div'>
+              
+              <ul>
+                  {this.chatListItems(this.state.messages)}
+              </ul>
+            </div>
+            <MessageEditor chatId={this.props.chatId} refresh={this.refeshChat} client={this.client}/>
+          </div>
+          
+      );
+  }
+}
 class MessageEditor extends React.Component{
   constructor(props) {
       super(props);
@@ -62,12 +160,12 @@ class MessageEditor extends React.Component{
       if(this.state.value != ""){
         this.send(this.state.value);
       }
-      client.send(JSON.stringify({message:this.state.value,type:"userEvent",username:"james young"}));
+      this.props.client.send(JSON.stringify({message:this.state.value,type:"userEvent",username:"james young"}));
       this.setState({value:''});
       //this.props.refresh();
     }
     async send(message){
-      const response = await fetch('/api/channels/633506bff3062b9dde088655/messages',
+      const response = await fetch('/api/channels/'+this.props.chatId+'/messages',
         {
           method:"POST",
           body:JSON.stringify({messageText:message,
@@ -93,65 +191,7 @@ class MessageEditor extends React.Component{
   }
 }
 
-class ChatDisplay extends React.Component{
-  constructor(props){
-      super(props);
-      this.state = {value: 'test',messages:[]};
-      this.messageList = [];
-      this.refeshChat = this.refeshChat.bind(this);
-  }
-  componentDidMount() {
-    client.onopen = () => {
-      console.log('WebSocket Client Connected');
-      this.refeshChat();
-    };
-    client.onmessage = (message) => {
-      console.log(message.data);
-      this.refeshChat();
-    
-    };
-  }
-  chatListItems(messages){
-      console.log(messages);
-      return messages.map((message) => <li key={message._id}>{message.username}: {message.text}</li>)
-  }
-  async refeshChat(){
-    console.log("refreshing chat");
-    const response = await fetch('/api/channels/633506bff3062b9dde088655/messages',
-        {
-          method:"GET",
-          headers : { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-          }
-        }
-      );
-    const body = await response.json();
-    console.log(body);
-    let messageList = [];
-    this.setState({messages:[]});
-    for(const message of body){
-      messageList.push({_id:message._id,text:message.messageText,username:message.username});
-    }
-    this.setState({messages:messageList});
-  }
-
-  render(){
-      return(
-          <div>
-            <div className='scrollable-div'>
-              <ul>
-                  {this.chatListItems(this.state.messages)}
-              </ul>
-            </div>
-            <MessageEditor refresh={this.refeshChat}/>
-          </div>
-          
-      );
-  }
-}
-
 // ========================================
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<div><ChannelDisplay /><ChatWindow /></div>);
+root.render(<div><ChannelDisplay /></div>);
