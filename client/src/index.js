@@ -6,7 +6,7 @@ import { w3cwebsocket as W3CWebSocket } from "websocket";
 //const client = new W3CWebSocket('ws://127.0.0.1:8000');
 let currentChannelId = '';
 //import io from "socket.io-client"; 
-
+const validLink = new RegExp(/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/);
 // import App from './App';
 // import reportWebVitals from './reportWebVitals';
 
@@ -99,7 +99,15 @@ class ChatDisplay extends React.Component{
   }
   chatListItems(messages){
       console.log(messages);
-      return messages.map((message) => <li key={message._id}>{message.username}: {message.text}</li>)
+      
+      return messages.map((message) => {
+        if(validLink.test(message.text)){
+          return <li key={message._id}>{message.username}: <a href={message.text}>{message.text}</a></li>
+        }else{
+          return <li key={message._id}>{message.username}: {message.text}</li>
+        }
+        }
+        )
   }
   async refeshChat(){
     console.log("refreshing chat");
